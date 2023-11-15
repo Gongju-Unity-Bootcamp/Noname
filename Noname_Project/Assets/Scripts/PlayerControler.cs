@@ -23,6 +23,7 @@ public class PlayerControler : MonoBehaviour
     [SerializeField] public float coolTime = 0.5f;
     [SerializeField] public float curTime;
     public Transform pos;
+    public Transform pos2;
     public Vector2 boxSize;
 
     Rigidbody2D rb;
@@ -47,71 +48,8 @@ public class PlayerControler : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.normalized.x * 0.5f, rb.velocity.y);
         }
 
-        //Jump
-        if (Input.GetButtonDown("Jump") && isGround())
-        {
-            rb.AddForce(Vector2.up * JumpPower, ForceMode2D.Impulse);
-            isJump = true;
-            jumpCounter = 0;
-            anim.SetBool("Jump", true);
-        }
-
-        if (rb.velocity.y > 0 && isJump)
-        {
-            jumpCounter += Time.deltaTime;
-            if (jumpCounter > jumpTime) isJump = false;
-
-            float j_time = jumpCounter / jumpTime;
-            float currentJump = jumpMultiplier;
-
-            if(j_time > 0.5f)   // 점프 시간의 절반이 지나면 상승속도 줄어듬(유사관성)
-            {
-                currentJump = jumpMultiplier * (1 - j_time);
-            }
-
-            rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
-        }
-
-        if (Input.GetButtonUp("Jump"))
-        {
-            isJump = false;
-            jumpCounter = 0; 
-
-            if (rb.velocity.y > 0)  //제일 약한 점프
-            {
-                rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
-            }
-        }
-
-        if (rb.velocity.y < 0)  // 떨어질때 속도 증가
-        {
-            rb.velocity -= vecGravity * fallMultiplier * Time.deltaTime;
-            anim.SetBool("Jump", false);
-        }
-
-        //Attack
-        if(curTime <= 0)
-        {
-            if (Input.GetKeyDown(KeyCode.Z))
-            {
-
-                Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos.position, boxSize, 0);
-                foreach (Collider2D collider in collider2Ds)
-                {
-                    if(CompareTag("Enemy"))
-                    {
-                        //collider.GetComponent<Enemy>().TakeDamage('데미지');
-                    }
-                }
-
-                anim.SetTrigger("Attack");
-                curTime = coolTime;
-            }
-        }
-        else
-        {
-            curTime -= Time.deltaTime;
-        }
+        Jump();
+        Attack();        
     }
 
     void FixedUpdate()
@@ -146,5 +84,93 @@ public class PlayerControler : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(pos.position, boxSize);
+        Gizmos.DrawWireCube(pos2.position, boxSize);
+    }
+
+    void Jump()
+    {
+        //Jump
+        if (Input.GetButtonDown("Jump") && isGround())
+        {
+            rb.AddForce(Vector2.up * JumpPower, ForceMode2D.Impulse);
+            isJump = true;
+            jumpCounter = 0;
+            anim.SetBool("Jump", true);
+        }
+
+        if (rb.velocity.y > 0 && isJump)
+        {
+            jumpCounter += Time.deltaTime;
+            if (jumpCounter > jumpTime) isJump = false;
+
+            float j_time = jumpCounter / jumpTime;
+            float currentJump = jumpMultiplier;
+
+            if (j_time > 0.5f)   // 점프 시간의 절반이 지나면 상승속도 줄어듬(유사관성)
+            {
+                currentJump = jumpMultiplier * (1 - j_time);
+            }
+
+            rb.velocity += vecGravity * jumpMultiplier * Time.deltaTime;
+        }
+
+        if (Input.GetButtonUp("Jump"))
+        {
+            isJump = false;
+            jumpCounter = 0;
+
+            if (rb.velocity.y > 0)  //제일 약한 점프
+            {
+                rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+            }
+        }
+
+        if (rb.velocity.y < 0)  // 떨어질때 속도 증가
+        {
+            rb.velocity -= vecGravity * fallMultiplier * Time.deltaTime;
+            anim.SetBool("Jump", false);
+        }
+    }
+
+    void Attack()
+    {
+        //Attack
+        if (curTime <= 0)
+        {
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                if (!spriter.flipX)
+                {
+                    Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos.position, boxSize, 0);
+                    foreach (Collider2D collider in collider2Ds)
+                    {
+                        if (collider.tag == "Enemy")
+                        {
+                            collider.GetComponent<Enemy>().TakeDamage(1);
+                        }
+                    }
+                }
+
+                else
+                {
+                    Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos2.position, boxSize, 0);
+                    foreach (Collider2D collider in collider2Ds)
+                    {
+                        if (collider.tag == "Enemy")
+                        {
+                            collider.GetComponent<Enemy>().TakeDamage(1);
+                        }
+                    }
+                } 
+                
+
+                anim.SetTrigger("Attack");
+                curTime = coolTime;
+            }
+        }
+        else
+        {
+            curTime -= Time.deltaTime;
+        }
     }
 }
