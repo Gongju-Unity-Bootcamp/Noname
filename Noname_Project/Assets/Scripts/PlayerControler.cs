@@ -22,6 +22,7 @@ public class PlayerControler : MonoBehaviour
     [Header("공격")]
     [SerializeField] public float coolTime = 0.5f;
     [SerializeField] public float curTime;
+    [SerializeField] public int damage;
     public Transform pos;
     public Transform pos2;
     public Vector2 boxSize;
@@ -87,6 +88,14 @@ public class PlayerControler : MonoBehaviour
         Gizmos.DrawWireCube(pos2.position, boxSize);
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "Enemy")
+        {
+            OnDamaged(collision.transform.position);
+        }
+    }
+
     void Jump()
     {
         //Jump
@@ -139,6 +148,7 @@ public class PlayerControler : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Z))
             {
+                gameObject.layer = 9;
                 if (!spriter.flipX)
                 {
                     Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos.position, boxSize, 0);
@@ -146,7 +156,7 @@ public class PlayerControler : MonoBehaviour
                     {
                         if (collider.tag == "Enemy")
                         {
-                            collider.GetComponent<Enemy>().TakeDamage(1);
+                            collider.GetComponent<Enemy>().TakeDamage(damage);
                         }
                     }
                 }
@@ -158,12 +168,12 @@ public class PlayerControler : MonoBehaviour
                     {
                         if (collider.tag == "Enemy")
                         {
-                            collider.GetComponent<Enemy>().TakeDamage(1);
+                            collider.GetComponent<Enemy>().TakeDamage(damage);
                         }
                     }
-                } 
-                
+                }
 
+                Invoke("OffDamage", 1);
                 anim.SetTrigger("Attack");
                 curTime = coolTime;
             }
@@ -172,5 +182,27 @@ public class PlayerControler : MonoBehaviour
         {
             curTime -= Time.deltaTime;
         }
+    }
+
+    void OnDamaged(Vector2 targetPos)
+    {
+        gameObject.layer = 9;   //PlayerDamaged Layer
+
+        spriter.color = new Color(1, 1, 1, 0.4f);    //반투명
+
+        int knockback = transform.position.x - targetPos.x > 0 ? 1 : -1;
+        rb.AddForce(new Vector2(knockback,1) * 5, ForceMode2D.Impulse);
+
+        anim.SetTrigger("Hit");
+
+        StartCoroutine("OffDamage");
+    }
+
+    IEnumerator OffDamage()
+    {
+        yield return new WaitForSeconds(2f);
+
+        gameObject.layer = 8;   //Player Layer
+        spriter.color = new Color(1, 1, 1, 1);    //원래 색으로
     }
 }

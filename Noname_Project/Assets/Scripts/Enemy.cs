@@ -1,23 +1,36 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Enemy : MonoBehaviour
 {
-    public int HP = 3;
+    public int hp = 3;
     public int nextMove;    // 1:right -1:left
+
+    public bool islive;
 
     Rigidbody2D rb;
     Animator anim;
     SpriteRenderer spriter;
+    CapsuleCollider2D collider;
 
+
+    PlayerControler player;
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         spriter = GetComponent<SpriteRenderer>();
+        collider = GetComponent<CapsuleCollider2D>();
+        player = GetComponent<PlayerControler>();
 
         MoveRandom();
+    }
+
+    private void Update()
+    {
+        CheckHp(hp);
     }
 
     void FixedUpdate()
@@ -56,6 +69,40 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        HP = HP - damage; 
+        hp = hp - damage;
+        EmOnDamaged();
+    }
+
+    void CheckHp(int heath)
+    {
+        if(heath == 0)
+        {
+            collider.enabled = false;
+            spriter.color = new Color(1, 1, 1, 0.4f);
+            StartCoroutine("Dead");
+        }
+    }
+
+    void EmOnDamaged()
+    {
+        gameObject.layer = 10;   //EnemyDamaged Layer
+        spriter.color = new Color(1, 1, 1, 0.4f);    //반투명
+        rb.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
+        StartCoroutine(EmOffDamage());
+    }
+    IEnumerator EmOffDamage()
+    {
+        yield return new WaitForSeconds(2f);
+
+        gameObject.layer = 7;   //Enemy Layer
+        spriter.color = new Color(1, 1, 1, 1);    //원래 색으로
+    }
+
+
+    IEnumerator Dead()
+    {
+        yield return new WaitForSeconds(1.5f);
+
+        Destroy(gameObject);
     }
 }
