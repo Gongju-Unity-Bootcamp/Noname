@@ -30,12 +30,15 @@ public class PlayerControler : MonoBehaviour
     Rigidbody2D rb;
     SpriteRenderer spriter;
     Animator anim;
+    public GameManager gameManager;
+    CapsuleCollider2D cp;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriter = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        cp = GetComponent<CapsuleCollider2D>();
 
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
     }
@@ -88,11 +91,25 @@ public class PlayerControler : MonoBehaviour
         Gizmos.DrawWireCube(pos2.position, boxSize);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.tag == "Enemy")
         {
             OnDamaged(collision.transform.position);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject.tag == "Item")
+        {
+            gameManager.stagePoint += 100;
+
+            collision.gameObject.gameObject.SetActive(false);
+        }
+        else if (collision.gameObject.tag == "Finish")
+        {
+            gameManager.NextStage();
         }
     }
 
@@ -148,7 +165,6 @@ public class PlayerControler : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Z))
             {
-                gameObject.layer = 9;
                 if (!spriter.flipX)
                 {
                     Collider2D[] collider2Ds = Physics2D.OverlapBoxAll(pos.position, boxSize, 0);
@@ -186,6 +202,8 @@ public class PlayerControler : MonoBehaviour
 
     void OnDamaged(Vector2 targetPos)
     {
+        gameManager.HealthDown();
+
         gameObject.layer = 9;   //PlayerDamaged Layer
 
         spriter.color = new Color(1, 1, 1, 0.4f);    //반투명
@@ -204,5 +222,12 @@ public class PlayerControler : MonoBehaviour
 
         gameObject.layer = 8;   //Player Layer
         spriter.color = new Color(1, 1, 1, 1);    //원래 색으로
+    }
+
+    public void Dead()
+    {
+        spriter.flipY = true;
+        cp.enabled = false;
+        rb.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
     }
 }

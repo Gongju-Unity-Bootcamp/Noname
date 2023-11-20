@@ -38,34 +38,36 @@ public class Enemy : MonoBehaviour
         rb.velocity = new Vector2(nextMove, rb.velocity.y);
 
         Vector2 frontVec = new Vector2(rb.position.x + nextMove * 0.5f, rb.position.y);
-        Debug.DrawLine(frontVec, Vector3.down, new Color(0, 1, 0));
         RaycastHit2D rayHit = Physics2D.Raycast(frontVec, Vector3.down, 1, LayerMask.GetMask("Ground"));
         if (rayHit.collider == null)
             Turn();         
     }
 
+    //Move
+
     void MoveRandom()
     {
         nextMove = Random.Range(-1, 2);
 
-        //anim.SetInteger("WalkSpeed", nextMove);
-        if(nextMove != 0)
-        {
-            spriter.flipX = nextMove < 0;
-        }
+        anim.SetInteger("Walkspeed", nextMove);
 
-        float nextTime = Random.Range(2f, 7f);
+        if(nextMove != 0)   
+            spriter.flipX = nextMove == 1;    
+
+        float nextTime = Random.Range(2f, 5f);
         Invoke("MoveRandom", nextTime);
     }
 
     void Turn()
     {
         nextMove *= -1;
-        spriter.flipX = nextMove < 0;
+        spriter.flipX = nextMove == 1;
 
         CancelInvoke();
-        Invoke("MoveRandom", 3);
+        Invoke("MoveRandom", 2);
     }
+
+    //Damage
 
     public void TakeDamage(int damage)
     {
