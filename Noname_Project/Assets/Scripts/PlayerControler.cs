@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 public class PlayerControler : MonoBehaviour
@@ -27,6 +28,7 @@ public class PlayerControler : MonoBehaviour
     public Transform pos2;
     public Vector2 boxSize;
 
+    bool islive;
     Rigidbody2D rb;
     SpriteRenderer spriter;
     Animator anim;
@@ -40,20 +42,24 @@ public class PlayerControler : MonoBehaviour
         anim = GetComponent<Animator>();
         cp = GetComponent<CapsuleCollider2D>();
 
+        islive = true;
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
     }
 
     void Update()
     {
-        inputVec.x = Input.GetAxisRaw("Horizontal");
-
-        if (Input.GetButtonUp("Horizontal"))
+        if (islive)
         {
-            rb.velocity = new Vector2(rb.velocity.normalized.x * 0.5f, rb.velocity.y);
-        }
+            inputVec.x = Input.GetAxisRaw("Horizontal");
 
-        Jump();
-        Attack();        
+            if (Input.GetButtonUp("Horizontal"))
+            {
+                rb.velocity = new Vector2(rb.velocity.normalized.x * 0.5f, rb.velocity.y);
+            }
+
+            Jump();
+            Attack();
+        }          
     }
 
     void FixedUpdate()
@@ -206,8 +212,6 @@ public class PlayerControler : MonoBehaviour
 
         gameObject.layer = 9;   //PlayerDamaged Layer
 
-        spriter.color = new Color(1, 1, 1, 0.4f);    //반투명
-
         int knockback = transform.position.x - targetPos.x > 0 ? 1 : -1;
         rb.AddForce(new Vector2(knockback,1) * 5, ForceMode2D.Impulse);
 
@@ -221,13 +225,17 @@ public class PlayerControler : MonoBehaviour
         yield return new WaitForSeconds(2f);
 
         gameObject.layer = 8;   //Player Layer
-        spriter.color = new Color(1, 1, 1, 1);    //원래 색으로
     }
 
     public void Dead()
     {
-        spriter.flipY = true;
-        cp.enabled = false;
-        rb.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
+        if(gameManager.health == 0)
+        {
+            islive = false;
+
+            anim.SetTrigger("Dead");
+            spriter.flipY = true;
+            cp.enabled = false;
+        }    
     }
 }

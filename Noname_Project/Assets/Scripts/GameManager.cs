@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour
 
     public PlayerControler player;
 
+    public void Update()
+    {
+        player.Dead();
+    }
+
     public void NextStage()
     {
         stageIndex++;
@@ -22,11 +27,5 @@ public class GameManager : MonoBehaviour
     {
         if(health > 0)
             health--;
-        else
-        {
-            player.Dead();
-
-
-        }
     }
 }

@@ -13,7 +13,7 @@ public class FallDown1 : MonoBehaviour
             if (gameManager.health > 1)
             {
                 collision.attachedRigidbody.velocity = Vector2.zero;
-                collision.transform.position = new Vector3(113, -5, -1);
+                collision.transform.position = new Vector3(94, -6, -1);
             }
 
             gameManager.HealthDown();
