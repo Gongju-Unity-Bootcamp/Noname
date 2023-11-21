@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 public class PlayerControler : MonoBehaviour
@@ -22,34 +23,43 @@ public class PlayerControler : MonoBehaviour
     [Header("АјАн")]
     [SerializeField] public float coolTime = 0.5f;
     [SerializeField] public float curTime;
+    [SerializeField] public int damage;
     public Transform pos;
     public Transform pos2;
     public Vector2 boxSize;
 
+    bool islive;
     Rigidbody2D rb;
     SpriteRenderer spriter;
     Animator anim;
+    public GameManager gameManager;
+    CapsuleCollider2D cp;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriter = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        cp = GetComponent<CapsuleCollider2D>();
 
+        islive = true;
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
     }
 
     void Update()
     {
-        inputVec.x = Input.GetAxisRaw("Horizontal");
-
-        if (Input.GetButtonUp("Horizontal"))
+        if (islive)
         {
-            rb.velocity = new Vector2(rb.velocity.normalized.x * 0.5f, rb.velocity.y);
-        }
+            inputVec.x = Input.GetAxisRaw("Horizontal");
 
-        Jump();
-        Attack();        
+            if (Input.GetButtonUp("Horizontal"))
+            {
+                rb.velocity = new Vector2(rb.velocity.normalized.x * 0.5f, rb.velocity.y);
+            }
+
+            Jump();
+            Attack();
+        }          
     }
 
     void FixedUpdate()
@@ -85,6 +95,28 @@ public class PlayerControler : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(pos.position, boxSize);
         Gizmos.DrawWireCube(pos2.position, boxSize);
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "Enemy")
+        {
+            OnDamaged(collision.transform.position);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject.tag == "Item")
+        {
+            gameManager.stagePoint += 100;
+
+            collision.gameObject.gameObject.SetActive(false);
+        }
+        else if (collision.gameObject.tag == "Finish")
+        {
+            gameManager.NextStage();
+        }
     }
 
     void Jump()
@@ -146,7 +178,7 @@ public class PlayerControler : MonoBehaviour
                     {
                         if (collider.tag == "Enemy")
                         {
-                            collider.GetComponent<Enemy>().TakeDamage(1);
+                            collider.GetComponent<Enemy>().TakeDamage(damage);
                         }
                     }
                 }
@@ -158,12 +190,12 @@ public class PlayerControler : MonoBehaviour
                     {
                         if (collider.tag == "Enemy")
                         {
-                            collider.GetComponent<Enemy>().TakeDamage(1);
+                            collider.GetComponent<Enemy>().TakeDamage(damage);
                         }
                     }
-                } 
-                
+                }
 
+                Invoke("OffDamage", 1);
                 anim.SetTrigger("Attack");
                 curTime = coolTime;
             }
@@ -172,5 +204,38 @@ public class PlayerControler : MonoBehaviour
         {
             curTime -= Time.deltaTime;
         }
+    }
+
+    void OnDamaged(Vector2 targetPos)
+    {
+        gameManager.HealthDown();
+
+        gameObject.layer = 9;   //PlayerDamaged Layer
+
+        int knockback = transform.position.x - targetPos.x > 0 ? 1 : -1;
+        rb.AddForce(new Vector2(knockback,1) * 5, ForceMode2D.Impulse);
+
+        anim.SetTrigger("Hit");
+
+        StartCoroutine("OffDamage");
+    }
+
+    IEnumerator OffDamage()
+    {
+        yield return new WaitForSeconds(2f);
+
+        gameObject.layer = 8;   //Player Layer
+    }
+
+    public void Dead()
+    {
+        if(gameManager.health == 0)
+        {
+            islive = false;
+
+            anim.SetTrigger("Dead");
+            spriter.flipY = true;
+            cp.enabled = false;
+        }    
     }
 }
