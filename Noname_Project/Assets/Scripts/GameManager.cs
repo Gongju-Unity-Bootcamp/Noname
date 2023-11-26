@@ -18,6 +18,11 @@ public class GameManager : MonoBehaviour
     public Text UIPoint;
     public GameObject RestartBtn;
 
+    void Awake()
+    {
+        AudioManager.instance.PlayBgm(true);
+    }
+
     public void Update()
     {
         player.Dead();
@@ -42,6 +47,10 @@ public class GameManager : MonoBehaviour
             Text btnText = RestartBtn.GetComponentInChildren<Text>();
             btnText.text = "Game Clear!!";
             RestartBtn.SetActive(true);
+
+            AudioManager.instance.PlayBgm(false);
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.ending);
+
         }
 
         totalPoint += stagePoint;
@@ -54,6 +63,7 @@ public class GameManager : MonoBehaviour
         {
             health--;
             UIhealth[health].color = new Color(1, 1, 1, 0.2f);
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.Hit);
         }
     }
 
