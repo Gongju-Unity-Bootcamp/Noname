@@ -34,6 +34,7 @@ public class PlayerControler : MonoBehaviour
     Animator anim;
     public GameManager gameManager;
     CapsuleCollider2D cp;
+    AudioSource audioSource;
 
     void Start()
     {
@@ -41,6 +42,7 @@ public class PlayerControler : MonoBehaviour
         spriter = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
         cp = GetComponent<CapsuleCollider2D>();
+        audioSource = GetComponent<AudioSource>();
 
         islive = true;
         vecGravity = new Vector2(0, -Physics2D.gravity.y);
@@ -112,6 +114,7 @@ public class PlayerControler : MonoBehaviour
             gameManager.stagePoint += 100;
 
             collision.gameObject.gameObject.SetActive(false);
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.Item);
         }
         else if (collision.gameObject.tag == "Finish")
         {
@@ -128,6 +131,8 @@ public class PlayerControler : MonoBehaviour
             isJump = true;
             jumpCounter = 0;
             anim.SetBool("Jump", true);
+
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.jump);
         }
 
         if (rb.velocity.y > 0 && isJump)
@@ -198,6 +203,9 @@ public class PlayerControler : MonoBehaviour
                 Invoke("OffDamage", 1);
                 anim.SetTrigger("Attack");
                 curTime = coolTime;
+
+                AudioManager.instance.PlaySfx(AudioManager.Sfx.Attack);
+
             }
         }
         else
@@ -236,7 +244,19 @@ public class PlayerControler : MonoBehaviour
             anim.SetTrigger("Dead");
             spriter.flipY = true;
             cp.enabled = false;
+
+            AudioManager.instance.PlayBgm(false);
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.die);
+
+            StartCoroutine("Delete");
         }    
+    }
+
+    IEnumerator Delete()
+    {
+        yield return new WaitForSeconds(0.9f);
+
+        Destroy(gameObject);
     }
 
     public void VelocityZero()
