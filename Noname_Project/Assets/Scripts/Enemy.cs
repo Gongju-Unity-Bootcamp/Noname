@@ -105,6 +105,7 @@ public class Enemy : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f);
 
+        gameObject.SetActive(false);
         Destroy(gameObject);
     }
 }

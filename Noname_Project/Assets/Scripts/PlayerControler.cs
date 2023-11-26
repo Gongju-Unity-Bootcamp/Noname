@@ -28,7 +28,7 @@ public class PlayerControler : MonoBehaviour
     public Transform pos2;
     public Vector2 boxSize;
 
-    bool islive;
+    public bool islive;
     Rigidbody2D rb;
     SpriteRenderer spriter;
     Animator anim;
@@ -237,5 +237,10 @@ public class PlayerControler : MonoBehaviour
             spriter.flipY = true;
             cp.enabled = false;
         }    
+    }
+
+    public void VelocityZero()
+    {
+        rb.velocity = Vector2.zero;
     }
 }
