@@ -5,6 +5,7 @@ using UnityEngine;
 public class FallDown1 : MonoBehaviour
 {
     public GameManager gameManager;
+    public PlayerControler player;
 
     void OnTriggerEnter2D(Collider2D collision)
     {
@@ -12,7 +13,7 @@ public class FallDown1 : MonoBehaviour
         {
             if (gameManager.health > 1)
             {
-                collision.attachedRigidbody.velocity = Vector2.zero;
+                player.VelocityZero();
                 collision.transform.position = new Vector3(94, -6, -1);
             }
 
